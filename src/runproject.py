@@ -13,7 +13,10 @@ from classifier_wrapper import ClassifierWrapper
 def load_data():
     df_train = pd.read_csv("../data/ftdataset_train.tsv", sep=' *\t *', encoding='utf-8', engine='python')
     df_val = pd.read_csv("../data/ftdataset_val.tsv", sep=' *\t *', encoding='utf-8', engine='python')
-    df_test = pd.read_csv("../data/ftdataset_test.tsv", sep=' *\t *', encoding='utf-8', engine='python')
+    try:
+        df_test = pd.read_csv("../data/ftdataset_test.tsv", sep=' *\t *', encoding='utf-8', engine='python')
+    except:
+        df_test = df_val
     return df_train.to_dict(orient='records'), df_val.to_dict(orient='records'), df_test.to_dict(orient='records')
 
 def eval(preds: list[dict], test_data: list[dict]) -> dict[str,float]:
@@ -41,6 +44,7 @@ def run_project(cfg: Config):
     test_texts = [element['Avis'] for element in test_data]
     if ClassifierWrapper.METHOD == 'LLM':
         cfg.n_runs = 1
+    pprint(vars(cfg), sort_dicts=False, compact=True)
     all_runs_acc = []
     for run_id in range(1, cfg.n_runs+1):
         print(f"RUN {run_id}/{cfg.n_runs}")
@@ -52,13 +56,14 @@ def run_project(cfg: Config):
         preds = clwrapper.predict(test_texts, cfg.device)
         accuracies = eval(preds, test_data)
         all_runs_acc.append(accuracies['macro_acc'])
-    print("ALL RUNS ACC:", all_runs_acc)
+        print(f"\nRUN{run_id}:", accuracies)
+    print("\nALL RUNS ACC:", all_runs_acc)
     avg_acc = round(mean(all_runs_acc), 2)
     print("AVG MACRO ACC:", avg_acc)
 
 if __name__ == "__main__":
     cfg = pyrallis.parse(config_class=Config)
-    pprint(vars(cfg), sort_dicts=False, compact=True)
+    # pprint(vars(cfg), sort_dicts=False, compact=True)
     seed_everything(123)
     start_time = time.perf_counter()
     run_project(cfg)
