@@ -1,5 +1,5 @@
 from jinja2 import Template
-from ollama import Client
+from openai import OpenAI
 import re
 import json
 
@@ -25,8 +25,8 @@ class LLMClassifier:
     def __init__(self, cfg: Config):
         self.cfg = cfg
         # Instantiate an ollama client
-        self.llmclient = Client(host=cfg.ollama_url)
-        self.model_name = 'gemma3:1b'
+        self.llmclient = OpenAI(base_url=cfg.ollama_url+'/v1', api_key='EMPTY')
+        self.model_name = 'gemma2:2b'
         self.model_options = {
             'num_predict': 500,  # max number of tokens to predict
             'temperature': 0.1,
@@ -44,8 +44,14 @@ class LLMClassifier:
         4 valeurs possibles pour l'opinion (Positive, Négative, Neutre et NE)
         """
         prompt = self.jtemplate.render(text=text)
-        result = self.llmclient.generate(model=self.model_name, prompt=prompt, options=self.model_options)
-        response = result['response']
+        messages = [{"role": "user", "content": prompt}]
+        result = self.llmclient.chat.completions.create(
+            model=self.model_name,
+            messages=messages, 
+            temperature=self.model_options['temperature'], 
+            top_p=self.model_options['top_p'], 
+            max_tokens=self.model_options['num_predict'])
+        response = result.choices[0].message.content
         jresp = self.parse_json_response(response)
         return jresp
 
