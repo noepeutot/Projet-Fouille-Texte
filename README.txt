@@ -1,6 +1,6 @@
-===============================================================================
+=============================================================================
             PROJET : FOUILLE D'OPINIONS DANS LES AVIS DE RESTAURANTS
-===============================================================================
+=============================================================================
 
 AUTEURS
 -------
@@ -11,15 +11,18 @@ DESCRIPTION DU CLASSIFIEUR
 --------------------------
 Pour ce projet, on a choisi d'utiliser la méthode PLMFT (fine-tuning d'un 
 modèle pré-entraîné). On utilise CamemBERT-large comme modèle de base car 
-c'est un modèle français performant. Le principe est simple : on prend le 
-texte d'un avis, on le fait passer dans CamemBERT pour obtenir une 
-représentation vectorielle, puis on utilise trois classificateurs (un par 
-aspect : Prix, Cuisine, Service) pour prédire l'opinion.
+c'est un modèle français performant. 
+Le principe est simple : on prend le texte d'un avis, on le fait passer dans 
+CamemBERT pour obtenir une représentation vectorielle, puis on utilise trois 
+classificateurs (un par aspect : Prix, Cuisine, Service) pour prédire 
+l'opinion.
 
-Pour la représentation du texte, au lieu de prendre juste le token [CLS], 
-on fait un Mean Pooling sur tous les tokens ce qui donne de meilleurs 
-résultats. Chaque classificateur est un petit réseau de neurones avec deux 
-couches (1024 -> 384 -> 4) et des activations GELU.
+Pour la représentation du texte, nous utilisons le tokenizer de CamemBERT 
+avec une longueur maximale de 256 tokens et du padding dynamique. Au lieu 
+de ne garder que le token [CLS], on effectue un Mean Pooling sur l'ensemble 
+des tokens de la séquence, ce qui permet de mieux capturer l'information 
+globale de l'avis. Chaque classificateur est un petit réseau de neurones 
+avec deux couches (1024 -> 384 -> 4) et des activations GELU.
 
 Recherches et évolution du modèle :
 On a testé plusieurs versions avant d'arriver à notre modèle final. On a 
